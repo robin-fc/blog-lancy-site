@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase'
 
+const assetTypes = ['image', 'video', 'audio', 'document'] as const
+type AssetType = (typeof assetTypes)[number]
+
+function isAssetType(type: string): type is AssetType {
+  return assetTypes.includes(type as AssetType)
+}
+
 // GET /api/assets — 列出用户素材
 export async function GET(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -15,7 +22,7 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get('type') // image | video | audio | document
 
   let query = client.from('assets').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-  if (type) query = query.eq('type', type)
+  if (type && isAssetType(type)) query = query.eq('type', type)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

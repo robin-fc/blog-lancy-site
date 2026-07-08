@@ -39,6 +39,7 @@ export interface Database {
           ai_usage_monthly?: Json
           updated_at?: string
         }
+        Relationships: []
       }
       articles: {
         Row: {
@@ -75,6 +76,7 @@ export interface Database {
           word_count?: number
           updated_at?: string
         }
+        Relationships: []
       }
       style_packs: {
         Row: {
@@ -101,6 +103,7 @@ export interface Database {
           config?: Json
           updated_at?: string
         }
+        Relationships: []
       }
       templates: {
         Row: {
@@ -140,6 +143,7 @@ export interface Database {
           thumbnail_url?: string | null
           use_count?: number
         }
+        Relationships: []
       }
       assets: {
         Row: {
@@ -167,6 +171,7 @@ export interface Database {
           name?: string
           metadata?: Json | null
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>

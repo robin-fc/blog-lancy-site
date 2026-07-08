@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
+import type { Database } from '@/types/database'
+
+type ArticleUpdate = Database['public']['Tables']['articles']['Update']
 
 // GET /api/articles/[id]
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json()
   const { title, content, style_pack_id, template_id, status } = body
 
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const updates: ArticleUpdate = { updated_at: new Date().toISOString() }
   if (title !== undefined) updates.title = title
   if (content !== undefined) {
     updates.content = content

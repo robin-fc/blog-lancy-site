@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase'
 
+const articleStatuses = ['draft', 'published', 'archived'] as const
+type ArticleStatus = (typeof articleStatuses)[number]
+
+function isArticleStatus(status: string): status is ArticleStatus {
+  return articleStatuses.includes(status as ArticleStatus)
+}
+
 // GET /api/articles — 列出用户文章
 export async function GET(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -23,7 +30,7 @@ export async function GET(req: NextRequest) {
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (status) query = query.eq('status', status)
+  if (status && isArticleStatus(status)) query = query.eq('status', status)
 
   const { data, error } = await query
 

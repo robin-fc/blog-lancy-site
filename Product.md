@@ -42,7 +42,7 @@
 
 **不做什么：**
 - ❌ 不做全平台 CMS（不是内容管理系统）
-- ❌ 不做视频剪辑（那是 comic-lancy-site 的领域）
+- ❌ 不做专业简历编辑与导出（那是 resume-lancy-site 的领域）
 - ❌ 不做社群/粉丝管理工具
 - ❌ 不做广告投放/数据分析后台
 
@@ -418,7 +418,7 @@ brand_style:
 | 富文本编辑器 | TipTap | 可扩展、基于 ProseMirror、生态成熟 |
 | 状态管理 | Zustand | 轻量、适合编辑器复杂状态 |
 | 拖拽 | dnd-kit | 现代、可访问性好 |
-| 实时通信 | SSE（AI 流式输出） | 与 comic-lancy-site 统一 |
+| 实时通信 | SSE（AI 流式输出） | 与 resume-lancy-site 统一 |
 | 手机预览 | iframe + device frame | 模拟真实微信渲染 |
 
 ### 6.2 后端

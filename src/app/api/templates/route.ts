@@ -3,8 +3,6 @@ import { supabase } from '@/lib/supabase'
 
 // GET /api/templates — 列出模板（内置+用户私有）
 export async function GET(req: NextRequest) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '')
-
   const { searchParams } = new URL(req.url)
   const category = searchParams.get('category')
   const industry = searchParams.get('industry')

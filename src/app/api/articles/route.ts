@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase'
 
 const articleStatuses = ['draft', 'published', 'archived'] as const

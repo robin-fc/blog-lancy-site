@@ -1,63 +1,33 @@
-import Link from 'next/link'
-import { PenLine, Sparkles, ImageIcon, LayoutTemplate, Palette } from 'lucide-react'
-
-const quickLinks = [
-  { href: '/editor', label: '新建文章', icon: PenLine },
-  { href: '/title-generator', label: 'AI 标题', icon: Sparkles },
-  { href: '/image-generator', label: 'AI 配图', icon: ImageIcon },
-  { href: '/templates', label: '浏览模板', icon: LayoutTemplate },
-  { href: '/styles', label: '我的风格', icon: Palette },
-]
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="font-bold text-lg mb-4">
-              <span className="text-blue-600">✦</span> 墨刻
-            </h3>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              AI 驱动的公众号风格优化平台<br />
-              从文字到爆款，一站式搞定
-            </p>
+    <footer className="border-t border-white/10 bg-[#1f211d] text-[#d7d3c9]">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#d64b2a] font-display text-lg text-white">
+              墨
+            </span>
+            <span className="font-display text-xl font-bold tracking-widest text-white">墨刻</span>
           </div>
-          <div>
-            <h4 className="font-semibold text-sm mb-3">产品功能</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="hover:text-gray-900 transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm mb-3">支持与帮助</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">使用教程</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">常见问题</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">反馈建议</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">API 文档</span></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm mb-3">关于</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">关于我们</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">隐私政策</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">服务条款</span></li>
-              <li><span className="hover:text-gray-900 cursor-pointer transition-colors">联系我们</span></li>
-            </ul>
-          </div>
+          <p className="max-w-md text-sm leading-6 text-[#aaa9a1]">
+            一个诚实、轻量的公众号排版工具。没有套餐墙，不上传你的文章，也不替内容制造虚假的成功承诺。
+          </p>
         </div>
-        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-xs text-gray-400">
-          © 2026 墨刻 — AI 公众号风格优化平台
+        <div className="flex flex-col items-start gap-3 text-sm sm:items-end">
+          <nav className="flex gap-5">
+            <Link href="/editor" className="hover:text-white">创作台</Link>
+            <Link href="/title-generator" className="hover:text-white">标题灵感</Link>
+            <Link href="/templates" className="hover:text-white">版式样本</Link>
+          </nav>
+          <p className="flex items-center gap-1.5 text-xs text-[#85877f]">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            内容默认只保存在当前浏览器
+          </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

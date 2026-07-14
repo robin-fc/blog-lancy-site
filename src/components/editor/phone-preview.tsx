@@ -67,14 +67,14 @@ export function PhonePreview({ content, styleId }: PhonePreviewProps) {
   return (
     <div className="flex justify-center">
       {/* 手机外壳 */}
-      <div className="relative w-[300px] h-[600px] bg-gray-900 rounded-[2.5rem] p-[10px] shadow-xl">
+      <div className="relative h-[600px] w-full max-w-[320px] rounded-[2.2rem] bg-[#20221e] p-[9px] shadow-[0_18px_45px_rgba(31,33,29,0.22)]">
         {/* 顶部刘海 */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-gray-900 rounded-b-2xl z-10" />
+        <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-2xl bg-[#20221e]" />
 
         {/* 屏幕区域 */}
-        <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden flex flex-col">
+        <div className="flex h-full w-full flex-col overflow-hidden rounded-[1.8rem] bg-white">
           {/* 状态栏 */}
-          <div className="flex-shrink-0 flex items-center justify-between px-6 pt-2 pb-1 text-[10px] text-gray-500">
+          <div className="flex flex-shrink-0 items-center justify-between px-6 pb-1 pt-2 text-[10px] text-[#74776e]">
             <span className="font-medium">9:41</span>
             <div className="flex items-center gap-1.5">
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>

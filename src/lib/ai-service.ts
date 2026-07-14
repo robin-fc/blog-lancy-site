@@ -118,7 +118,7 @@ export async function expandText(htmlContent: string): Promise<AIEditResult> {
   if (!text) return { text: '', changes: [] }
 
   const changes: string[] = []
-  let expanded = text
+  const expanded = text
 
   // 对每个段落扩写：如果段落太短（<30字），追加补充
   const paragraphs = expanded.split('\n\n').filter(p => p.trim())

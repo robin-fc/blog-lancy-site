@@ -17,7 +17,7 @@ interface EditorState {
 const initialState = {
   content: '',
   title: '',
-  stylePackId: 'minimal',
+  stylePackId: 'minimal-bw',
 }
 
 export const useEditorStore = create<EditorState>()(

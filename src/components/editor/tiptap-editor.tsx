@@ -28,7 +28,7 @@ export function TiptapEditor({ content, onChange, onEditorReady }: TiptapEditorP
         heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
-        placeholder: '开始写作...',
+        placeholder: '把文章粘贴到这里，或从这一行开始写...',
       }),
       Typography,
       Underline,
@@ -41,7 +41,7 @@ export function TiptapEditor({ content, onChange, onEditorReady }: TiptapEditorP
       LinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-600 underline cursor-pointer',
+          class: 'text-[#b23c22] underline cursor-pointer',
         },
       }),
       ImageExtension.configure({
@@ -53,7 +53,7 @@ export function TiptapEditor({ content, onChange, onEditorReady }: TiptapEditorP
     content: content,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4',
+        class: 'tiptap',
       },
     },
     onUpdate: ({ editor }) => {
@@ -106,9 +106,9 @@ export function TiptapEditor({ content, onChange, onEditorReady }: TiptapEditorP
   }, [editor])
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-md border border-[#d8d1c3] bg-white">
       {/* 工具栏 */}
-      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-gray-200 bg-gray-50 flex-wrap">
+      <div className="sticky top-0 z-10 flex min-h-11 items-center gap-0.5 overflow-x-auto border-b border-[#ded7ca] bg-[#f4efe5] px-3 py-1.5">
         {/* 撤销/重做 */}
         <ToolBtn title="撤销" shortcut="Ctrl+Z" onClick={() => editor?.chain().focus().undo().run()} disabled={!editor?.can().undo()}>
           ↩
@@ -184,7 +184,7 @@ export function TiptapEditor({ content, onChange, onEditorReady }: TiptapEditorP
       </div>
 
       {/* 编辑器内容 */}
-      <EditorContent editor={editor} className="prose-headings:text-gray-900 prose-p:text-gray-700" />
+      <EditorContent editor={editor} />
     </div>
   )
 }
@@ -211,10 +211,10 @@ function ToolBtn({
       title={shortcut ? `${title} (${shortcut})` : title}
       className={`px-2 py-1 text-sm rounded transition-colors ${
         active
-          ? 'bg-blue-100 text-blue-700'
+          ? 'bg-[#d64b2a] text-white'
           : disabled
           ? 'text-gray-300 cursor-not-allowed'
-          : 'hover:bg-gray-200 text-gray-700'
+          : 'hover:bg-[#e5ded1] text-[#55584f]'
       }`}
     >
       {children}
@@ -223,5 +223,5 @@ function ToolBtn({
 }
 
 function Divider() {
-  return <div className="w-px h-5 bg-gray-300 mx-1" />
+  return <div className="mx-1 h-5 w-px shrink-0 bg-[#d1c9ba]" />
 }

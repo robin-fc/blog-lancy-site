@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { createServerClient } from '@/lib/supabase'
 
 const assetTypes = ['image', 'video', 'audio', 'document'] as const
@@ -47,7 +46,6 @@ export async function POST(req: NextRequest) {
   if (!file) return NextResponse.json({ error: '未上传文件' }, { status: 400 })
 
   // 上传到 Supabase Storage
-  const ext = file.name.split('.').pop() || ''
   const path = `${user.id}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)

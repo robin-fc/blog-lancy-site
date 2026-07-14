@@ -1,287 +1,217 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Card } from '@/components/ui/card'
-import { Sparkles, RefreshCw, Copy, Check, Shield, TrendingUp, Heart, Star, Filter, ArrowRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useRouter } from 'next/navigation'
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Check,
+  Clipboard,
+  Info,
+  Lightbulb,
+  Loader2,
+  RefreshCw,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { Button } from "@/components/ui/button";
+import { generateTitles, type TitleResult } from "@/lib/ai-service";
+import { cn } from "@/lib/utils";
 
-interface TitleResult {
-  id: string
-  title: string
-  type: string
-  typeLabel: string
-  clickRateScore: number
-  riskLevel: 'low' | 'medium' | 'high'
-  emotionTag: string
-  emotionLabel: string
-  isFavorite?: boolean
-}
+const typeMeta: Record<TitleResult["type"], { label: string; color: string }> = {
+  pain: { label: "痛点", color: "#b4442c" },
+  number: { label: "数字", color: "#43614b" },
+  suspense: { label: "悬念", color: "#78633e" },
+  reverse: { label: "反常识", color: "#3f5d75" },
+  trend: { label: "趋势", color: "#70546a" },
+  emotion: { label: "情感", color: "#a05252" },
+};
 
-const titleTypes = [
-  { key: 'pain-point', label: '痛点型', emoji: '🎯', desc: '直击用户痛点' },
-  { key: 'number', label: '数字型', emoji: '🔢', desc: '数据更具说服力' },
-  { key: 'suspense', label: '悬念型', emoji: '❓', desc: '引发好奇心' },
-  { key: 'counter-intuitive', label: '反常识型', emoji: '💡', desc: '颠覆认知' },
-  { key: 'trending', label: '热点型', emoji: '🔥', desc: '蹭热点引流' },
-  { key: 'emotional', label: '情感型', emoji: '❤️', desc: '引发共鸣' },
-]
-
-// 模拟标题生成函数
-function generateMockTitles(content: string): TitleResult[] {
-  const baseTitles = [
-    { title: '为什么你的公众号没人看？这 3 个错误 90% 的人都犯了', type: 'pain-point', typeLabel: '痛点型', clickRateScore: 87, emotionLabel: '焦虑' },
-    { title: '7 个技巧让你的阅读量翻倍（亲测有效）', type: 'number', typeLabel: '数字型', clickRateScore: 72, emotionLabel: '期待' },
-    { title: '我删了这篇文章 5 次，第 6 次终于发出去了', type: 'suspense', typeLabel: '悬念型', clickRateScore: 91, emotionLabel: '好奇' },
-    { title: '别再写长文了，短文才是公众号的未来', type: 'counter-intuitive', typeLabel: '反常识型', clickRateScore: 78, emotionLabel: '颠覆' },
-    { title: '从今天的热点看公众号运营的 4 个真相', type: 'trending', typeLabel: '热点型', clickRateScore: 65, emotionLabel: '关注' },
-    { title: '写给每一个深夜还在写公众号的你', type: 'emotional', typeLabel: '情感型', clickRateScore: 83, emotionLabel: '共鸣' },
-  ]
-  
-  return baseTitles.map((t, i) => ({
-    id: String(i + 1),
-    ...t,
-    riskLevel: t.clickRateScore > 85 ? 'low' : t.clickRateScore > 70 ? 'medium' : 'high',
-    emotionTag: 'neutral',
-    isFavorite: false,
-  }))
-}
+const sampleText =
+  "做公众号三年后，我发现真正影响阅读体验的不是用了多少装饰，而是段落是否清楚、标题是否准确、重点是否克制。一篇文章只要让读者愿意继续往下滑，排版就完成了它的任务。";
 
 export default function TitleGeneratorPage() {
-  const router = useRouter()
-  const [content, setContent] = useState('')
-  const [titles, setTitles] = useState<TitleResult[]>([])
-  const [loading, setLoading] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [filterType, setFilterType] = useState<string | null>(null)
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const router = useRouter();
+  const [content, setContent] = useState("");
+  const [results, setResults] = useState<TitleResult[]>([]);
+  const [filter, setFilter] = useState<TitleResult["type"] | "all">("all");
+  const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState("");
 
-  const filteredTitles = useMemo(() => {
-    let result = titles
-    if (filterType) {
-      result = result.filter(t => t.type === filterType)
-    }
-    return result
-  }, [titles, filterType])
+  const visibleResults = useMemo(
+    () => (filter === "all" ? results : results.filter((item) => item.type === filter)),
+    [filter, results],
+  );
 
   const handleGenerate = async () => {
-    if (!content.trim()) return
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    const newTitles = generateMockTitles(content)
-    setTitles(newTitles)
-    setLoading(false)
-    setSelectedId(null)
-  }
+    if (content.trim().length < 10) return;
+    setLoading(true);
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 280));
+      setResults(await generateTitles(content));
+      setFilter("all");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleRegenerate = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    // 随机调整分数模拟重新生成
-    setTitles(prev => prev.map(t => ({
-      ...t,
-      clickRateScore: Math.min(99, Math.max(40, t.clickRateScore + Math.floor(Math.random() * 20 - 10))),
-    })))
-    setLoading(false)
-  }
-
-  const handleCopy = async (title: string, id: string) => {
-    await navigator.clipboard.writeText(title)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
-
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
-
-  const handleUseInEditor = (title: string) => {
-    // 实际项目中会保存到全局状态并跳转
-    router.push(`/editor?title=${encodeURIComponent(title)}`)
-  }
-
-  const riskColors = {
-    low: 'text-green-600 bg-green-50 border-green-200',
-    medium: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-    high: 'text-red-600 bg-red-50 border-red-200',
-  }
-
-  const riskLabels = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险',
-  }
+  const handleCopy = async (item: TitleResult) => {
+    await navigator.clipboard.writeText(item.title);
+    setCopiedId(item.id);
+    window.setTimeout(() => setCopiedId(""), 1800);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        {/* 标题 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI 标题生成器</h1>
-          <p className="text-gray-500">粘贴文章内容，AI 从 6 个维度生成爆款标题</p>
-        </div>
-
-        {/* 输入区 */}
-        <Card className="p-5 mb-6">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="粘贴文章正文或摘要...至少输入 50 字效果更佳"
-            className="min-h-[140px] mb-3 resize-none"
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-400">{content.length} 字 {content.length < 50 && content.length > 0 && '(建议 50 字以上)'}</span>
-            <div className="flex items-center gap-2">
-              {titles.length > 0 && (
-                <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={loading}>
-                  <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-                  重新生成
-                </Button>
-              )}
-              <Button onClick={handleGenerate} disabled={loading || !content.trim() || content.length < 10} className="gap-2">
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {loading ? '生成中...' : '生成标题'}
-              </Button>
+    <div className="min-h-screen">
+      <Header />
+      <main className="px-4 py-12 sm:px-6 sm:py-18">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div>
+              <p className="mb-3 text-xs font-bold tracking-[0.22em] text-[#b23c22]">本地标题灵感</p>
+              <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
+                同一篇文章，
+                <br />
+                换六个切入角度
+              </h1>
+            </div>
+            <div className="border-l-2 border-[#d64b2a] pl-5">
+              <p className="text-sm leading-7 text-[#62655d]">
+                这里不预测点击率，也不承诺“爆款”。工具只从痛点、数字、悬念、反常识、趋势和情感六种结构出发，帮你摆脱第一版标题。
+              </p>
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-[#85877f]">
+                <Info className="h-3.5 w-3.5" />
+                全程在浏览器内生成，不上传正文。
+              </p>
             </div>
           </div>
-        </Card>
 
-        {/* 类型筛选 */}
-        {titles.length > 0 && (
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
-            <span className="text-sm text-gray-500 shrink-0">筛选:</span>
-            <button
-              onClick={() => setFilterType(null)}
-              className={cn(
-                'px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0',
-                !filterType ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              )}
-            >
-              全部 ({titles.length})
-            </button>
-            {titleTypes.map((type) => {
-              const count = titles.filter(t => t.type === type.key).length
-              return (
+          <section className="mb-8 overflow-hidden rounded-lg border border-[#cbc3b5] bg-[#fffdf8] shadow-[6px_6px_0_rgba(31,33,29,0.08)]">
+            <div className="flex items-center justify-between border-b border-[#ded7ca] bg-[#f1ece1] px-5 py-3">
+              <span className="text-xs font-bold tracking-[0.14em] text-[#666960]">文章摘要或正文</span>
+              <button
+                onClick={() => setContent(sampleText)}
+                className="text-xs font-semibold text-[#b23c22] hover:underline"
+              >
+                填入示例
+              </button>
+            </div>
+            <textarea
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="粘贴文章正文，至少 10 字。内容越具体，标题越贴近原文。"
+              className="min-h-52 w-full resize-y border-0 bg-[#fffdf8] px-5 py-5 text-base leading-8 text-[#30322d] outline-none placeholder:text-[#aaa79d] sm:px-7"
+            />
+            <div className="flex flex-col gap-3 border-t border-[#ded7ca] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-[#85877f]">
+                {content.trim().length} 字
+                {content.trim().length > 0 && content.trim().length < 50 ? " · 建议输入 50 字以上" : ""}
+              </span>
+              <div className="flex gap-2">
+                {results.length > 0 && (
+                  <Button variant="outline" onClick={handleGenerate} disabled={loading}>
+                    <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                    换一组
+                  </Button>
+                )}
+                <Button onClick={handleGenerate} disabled={loading || content.trim().length < 10}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  {loading ? "正在拆解..." : "生成 6 个方向"}
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {results.length > 0 ? (
+            <section>
+              <div className="mb-5 flex items-center gap-2 overflow-x-auto pb-1">
                 <button
-                  key={type.key}
-                  onClick={() => setFilterType(type.key)}
+                  onClick={() => setFilter("all")}
                   className={cn(
-                    'px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0 flex items-center gap-1',
-                    filterType === type.key ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold",
+                    filter === "all" ? "bg-[#1f211d] text-white" : "border border-[#cbc3b5] bg-[#fffdf8]",
                   )}
                 >
-                  <span>{type.emoji}</span>
-                  {type.label} ({count})
+                  全部
                 </button>
-              )
-            })}
-          </div>
-        )}
+                {Object.entries(typeMeta).map(([key, meta]) => (
+                  <button
+                    key={key}
+                    onClick={() => setFilter(key as TitleResult["type"])}
+                    className={cn(
+                      "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold",
+                      filter === key ? "text-white" : "border border-[#cbc3b5] bg-[#fffdf8]",
+                    )}
+                    style={filter === key ? { backgroundColor: meta.color } : undefined}
+                  >
+                    {meta.label}
+                  </button>
+                ))}
+              </div>
 
-        {/* 标题列表 */}
-        {filteredTitles.length > 0 && (
-          <div className="space-y-3">
-            {filteredTitles.map((item, index) => (
-              <Card
-                key={item.id}
-                className={cn(
-                  'p-4 cursor-pointer transition-all hover:shadow-md',
-                  selectedId === item.id && 'ring-2 ring-blue-500 bg-blue-50'
-                )}
-                onClick={() => setSelectedId(item.id)}
-              >
-                <div className="flex items-start gap-4">
-                  {/* 排名序号 */}
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
-                    {index + 1}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    {/* 标签行 */}
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
-                        {item.typeLabel}
-                      </span>
-                      <span className={cn('text-xs px-2 py-0.5 rounded-full border font-medium', riskColors[item.riskLevel])}>
-                        <Shield className="w-3 h-3 inline mr-0.5" />
-                        {riskLabels[item.riskLevel]}
-                      </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-medium">
-                        <Heart className="w-3 h-3 inline mr-0.5" />
-                        {item.emotionLabel}
-                      </span>
-                    </div>
-
-                    {/* 标题文本 */}
-                    <p className="text-base font-medium text-gray-900 leading-relaxed">{item.title}</p>
-                  </div>
-
-                  {/* 右侧操作区 */}
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {/* 预估点击率分数 */}
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4 text-blue-500" />
-                      <div className="text-center">
-                        <span className={cn(
-                          'text-lg font-bold',
-                          item.clickRateScore >= 85 ? 'text-green-600' : item.clickRateScore >= 70 ? 'text-blue-600' : 'text-gray-500'
-                        )}>
-                          {item.clickRateScore}
-                        </span>
+              <div className="grid gap-3">
+                {visibleResults.map((item, index) => {
+                  const meta = typeMeta[item.type];
+                  return (
+                    <article
+                      key={item.id}
+                      className="group grid gap-4 rounded-lg border border-[#d4ccbd] bg-[#fffdf8] p-5 transition-all hover:-translate-y-0.5 hover:border-[#8f8d84] hover:shadow-md sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:items-center"
+                    >
+                      <div
+                        className="flex h-11 w-11 items-center justify-center rounded-full font-display text-lg font-bold text-white"
+                        style={{ backgroundColor: meta.color }}
+                      >
+                        {String(index + 1).padStart(2, "0")}
                       </div>
-                    </div>
-
-                    {/* 操作按钮 */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id) }}
-                        className={cn(
-                          'p-1.5 rounded-md hover:bg-gray-100 transition-colors',
-                          favorites.has(item.id) && 'text-yellow-500'
-                        )}
-                      >
-                        <Star className={cn('w-4 h-4', favorites.has(item.id) && 'fill-current')} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleCopy(item.title, item.id) }}
-                        className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
-                      >
-                        {copiedId === item.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleUseInEditor(item.title) }}
-                        className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-blue-600"
-                        title="在编辑器中使用"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* 空状态 */}
-        {titles.length === 0 && !loading && (
-          <div className="text-center py-16 text-gray-400">
-            <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>粘贴文章内容，AI 将为你生成 6 个维度的爆款标题</p>
-          </div>
-        )}
-      </div>
+                      <div>
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-bold" style={{ color: meta.color }}>
+                            {meta.label}结构
+                          </span>
+                          <span className="text-[10px] text-[#8c8e87]">结构完整度 {item.score}</span>
+                          {item.risks.map((risk) => (
+                            <span key={risk} className="flex items-center gap-1 text-[10px] text-[#a04a35]">
+                              <ShieldAlert className="h-3 w-3" />
+                              {risk}
+                            </span>
+                          ))}
+                        </div>
+                        <h2 className="font-display text-lg font-bold leading-7 text-[#292b27] sm:text-xl">
+                          {item.title}
+                        </h2>
+                      </div>
+                      <div className="flex gap-2 sm:justify-end">
+                        <Button variant="outline" size="sm" onClick={() => handleCopy(item)}>
+                          {copiedId === item.id ? <Check className="h-4 w-4 text-[#526653]" /> : <Clipboard className="h-4 w-4" />}
+                          {copiedId === item.id ? "已复制" : "复制"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push("/editor?title=" + encodeURIComponent(item.title))}
+                        >
+                          去排版
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ) : (
+            <section className="border-y border-[#d3cbbc] py-14 text-center text-[#777a71]">
+              <Lightbulb className="mx-auto mb-4 h-8 w-8 text-[#ba8d42]" />
+              <h2 className="font-display text-xl font-bold text-[#3f423b]">好标题应该准确，而不是夸张</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-6">
+                先把文章讲清楚，再选择最合适的角度。工具提供的是起点，最终判断仍然属于你。
+              </p>
+            </section>
+          )}
+        </div>
+      </main>
+      <Footer />
     </div>
-  )
+  );
 }

@@ -20,7 +20,7 @@ export async function exportArticle({ format, article }: ExportOptions): Promise
     case 'xiaohongshu':
       return generateXiaohongshuImage(article)
     case 'pdf':
-      return generatePdf(article, stylePack)
+      return generatePdf(article)
     case 'clipboard':
       return generateClipboardText(article)
     default:
@@ -120,7 +120,7 @@ function generateXiaohongshuImage(article: Article): Blob {
   return new Blob([article.content], { type: 'text/plain' })
 }
 
-function generatePdf(article: Article, stylePack: ReturnType<typeof getStylePackById>): Blob {
+function generatePdf(article: Article): Blob {
   console.log('PDF generation not implemented')
   return new Blob([article.content], { type: 'text/html' })
 }
@@ -138,7 +138,7 @@ function generateClipboardText(article: Article): string {
   return `${article.title}\n\n${content.trim()}`
 }
 
-export function exportToWechatHTML(content: string, stylePackId: string): string {
+export function exportToWechatHTMLLegacy(content: string, stylePackId: string): string {
   const stylePack = getStylePackById(stylePackId)
   // 简化版本，直接返回带样式的 HTML
   const colors = stylePack?.colors || { primary: '#000000', text: '#333333', secondary: '#666666', accent: '#3b82f6', background: '#ffffff' }
@@ -164,7 +164,7 @@ ${content || '<p>暂无内容</p>'}
 </html>`
 }
 
-export function copyToClipboard(text: string): Promise<void> {
+export function copyToClipboardLegacy(text: string): Promise<void> {
   if (navigator.clipboard) {
     return navigator.clipboard.writeText(text)
   }
@@ -189,4 +189,128 @@ export function downloadFile(content: string | Blob, filename: string, mimeType?
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+export function exportToWechatHTML(content: string, stylePackId: string): string {
+  const stylePack = getStylePackById(stylePackId)
+  const colors = stylePack?.colors || {
+    primary: '#20221e',
+    text: '#33352f',
+    secondary: '#666960',
+    accent: '#d64b2a',
+    background: '#ffffff',
+  }
+  const spacing = stylePack?.spacing || { paragraphGap: '1.5em', sectionGap: '2em' }
+
+  // 微信会清理 style 标签，因此关键样式直接写入每个元素。
+  const documentCopy = new DOMParser().parseFromString(
+    '<section id="moko-export">' + (content || '<p>暂无内容</p>') + '</section>',
+    'text/html',
+  )
+  const root = documentCopy.getElementById('moko-export')
+  if (!root) return content
+
+  const applyStyles = (selector: string, styles: Partial<CSSStyleDeclaration>) => {
+    root.querySelectorAll<HTMLElement>(selector).forEach((element) => {
+      Object.assign(element.style, styles)
+    })
+  }
+
+  Object.assign(root.style, {
+    boxSizing: 'border-box',
+    maxWidth: '677px',
+    margin: '0 auto',
+    padding: '20px 12px',
+    background: colors.background,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  })
+  applyStyles('h1', {
+    fontSize: '24px',
+    fontWeight: '700',
+    lineHeight: '1.45',
+    color: colors.primary,
+    textAlign: 'center',
+    margin: '28px 0 24px',
+  })
+  applyStyles('h2', {
+    fontSize: '20px',
+    fontWeight: '700',
+    lineHeight: '1.5',
+    color: colors.primary,
+    borderLeft: '4px solid ' + colors.accent,
+    paddingLeft: '12px',
+    margin: spacing.sectionGap + ' 0 16px',
+  })
+  applyStyles('h3', {
+    fontSize: '18px',
+    fontWeight: '700',
+    lineHeight: '1.5',
+    color: colors.secondary,
+    margin: spacing.sectionGap + ' 0 14px',
+  })
+  applyStyles('p', {
+    fontSize: '16px',
+    lineHeight: '1.85',
+    color: colors.text,
+    margin: '0 0 ' + spacing.paragraphGap,
+  })
+  applyStyles('blockquote', {
+    borderLeft: '3px solid ' + colors.primary,
+    background: colors.background,
+    padding: '12px 16px',
+    margin: '20px 0',
+    color: colors.secondary,
+  })
+  applyStyles('img', {
+    display: 'block',
+    maxWidth: '100%',
+    height: 'auto',
+    margin: '24px auto',
+  })
+  applyStyles('strong', { color: colors.primary, fontWeight: '700' })
+  applyStyles('ul, ol', {
+    paddingLeft: '24px',
+    margin: '0 0 20px',
+    color: colors.text,
+  })
+  applyStyles('li', {
+    fontSize: '16px',
+    lineHeight: '1.8',
+    marginBottom: '8px',
+  })
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>墨刻排版稿</title></head><body>' +
+    root.outerHTML +
+    '</body></html>'
+}
+
+export function copyToClipboard(text: string): Promise<void> {
+  const parser = new DOMParser()
+  const documentCopy = parser.parseFromString(text, 'text/html')
+  const html = documentCopy.body.innerHTML
+  const plainText = documentCopy.body.innerText
+
+  if (navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+    const item = new ClipboardItem({
+      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/plain': new Blob([plainText], { type: 'text/plain' }),
+    })
+    return navigator.clipboard.write([item])
+  }
+
+  const container = document.createElement('div')
+  container.contentEditable = 'true'
+  container.innerHTML = html
+  container.style.position = 'fixed'
+  container.style.left = '-9999px'
+  document.body.appendChild(container)
+  const range = document.createRange()
+  range.selectNodeContents(container)
+  const selection = window.getSelection()
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+  document.execCommand('copy')
+  selection?.removeAllRanges()
+  document.body.removeChild(container)
+  return Promise.resolve()
 }

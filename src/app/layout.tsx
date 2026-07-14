@@ -1,20 +1,18 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "墨刻 — AI 公众号风格优化平台",
-  description: "AI 驱动的新一代公众号内容创作与排版平台。标题、配图、排版、风格，一站式搞定。",
+  title: {
+    default: "墨刻 - 免费公众号排版工具",
+    template: "%s | 墨刻",
+  },
+  description:
+    "无需登录的免费公众号排版工具。粘贴文章、选择版式、实时预览，一键复制到微信公众号后台。",
+  keywords: ["公众号排版", "微信编辑器", "免费排版工具", "公众号编辑器"],
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1f211d",
 };
 
 export default function RootLayout({
@@ -23,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="zh-CN">
+      <body>{children}</body>
     </html>
   );
 }

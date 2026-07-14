@@ -52,32 +52,6 @@ export interface AIState {
   getUsagePercentage: (type: 'layout' | 'title' | 'image' | 'articles') => number
 }
 
-const getPlanLimits = (plan: 'free' | 'pro' | 'team') => {
-  switch (plan) {
-    case 'pro':
-      return {
-        articlesLimit: Infinity,
-        aiLayoutLimit: 300,
-        aiTitleLimit: 200,
-        aiImageLimit: 100,
-      }
-    case 'team':
-      return {
-        articlesLimit: Infinity,
-        aiLayoutLimit: 1000,
-        aiTitleLimit: 1000,
-        aiImageLimit: 500,
-      }
-    default:
-      return {
-        articlesLimit: 5,
-        aiLayoutLimit: 10,
-        aiTitleLimit: 10,
-        aiImageLimit: 3,
-      }
-  }
-}
-
 const getNextResetTime = () => {
   const now = new Date()
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
